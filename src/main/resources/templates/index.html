@@ -29,7 +29,7 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        button {
+        button.btn-submit {
             background-color: #007396;
             color: white;
             border: none;
@@ -39,15 +39,53 @@
             cursor: pointer;
             width: 100%;
         }
-        button:hover { background-color: #005b76; }
+        button.btn-submit:hover { background-color: #005b76; }
+
         .result-box {
             margin-top: 30px;
-            padding: 15px;
+            padding: 20px;
             background: #f9f9f9;
             border-left: 5px solid #007396;
             border-radius: 4px;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .result-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .btn-copy {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-copy:hover {
+            background-color: #218838;
+        }
+        .btn-copy.copied {
+            background-color: #17a2b8;
+        }
+        .content-area {
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fff;
+            padding: 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
         }
         .error {
             color: red;
@@ -62,14 +100,14 @@
 
 <div class="container">
     <h2>Trình Cào Nội Dung từ ID="lst_content"</h2>
-    
+
     <!-- Form nhập URL -->
     <form action="#" th:action="@{/scrape}" method="post">
         <div class="form-group">
             <label for="targetUrl">Nhập Link Trang Web Cần Lấy:</label>
             <input type="text" id="targetUrl" name="targetUrl" th:value="${inputUrl}" placeholder="https://example.com/bai-viet" required>
         </div>
-        <button type="submit">Lấy Nội Dung</button>
+        <button type="submit" class="btn-submit">Lấy Nội Dung</button>
     </form>
 
     <!-- Hiển thị lỗi nếu có -->
@@ -77,10 +115,54 @@
 
     <!-- Hiển thị kết quả cào được -->
     <div th:if="${scrapedContent}" class="result-box">
-        <h3>Nội dung lấy được từ id="lst_content":</h3>
-        <p th:text="${scrapedContent}"></p>
+        <div class="result-header">
+            <h3>Nội dung lấy được:</h3>
+            <button type="button" class="btn-copy" id="copyBtn" onclick="copyToClipboard()">Sao Chép</button>
+        </div>
+        <div class="content-area" id="scrapedText" th:text="${scrapedContent}"></div>
     </div>
 </div>
+
+<script>
+    function copyToClipboard() {
+        const textElement = document.getElementById('scrapedText');
+        const copyBtn = document.getElementById('copyBtn');
+
+        if (!textElement) return;
+
+        const content = textElement.innerText || textElement.textContent;
+
+        navigator.clipboard.writeText(content).then(() => {
+            copyBtn.innerText = 'Đã Copy!';
+            copyBtn.classList.add('copied');
+
+            setTimeout(() => {
+                copyBtn.innerText = 'Sao Chép';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            // Fallback cho trình duyệt cũ hoặc không hỗ trợ navigator.clipboard
+            const textarea = document.createElement('textarea');
+            textarea.value = content;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                copyBtn.innerText = 'Đã Copy!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.innerText = 'Sao Chép';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (e) {
+                alert('Không thể copy tự động, vui lòng bôi đen và nhấn Ctrl+C.');
+            }
+            document.body.removeChild(textarea);
+        });
+    }
+</script>
 
 </body>
 </html>
